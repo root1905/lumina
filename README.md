@@ -1,36 +1,89 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Lumina Pro: Professional Display & Audio Diagnostic Suite
+
+Lumina Pro, modern ekran teknolojileri ve ses sistemleri için geliştirilmiş, tarayıcı tabanlı, yüksek performanslı bir teşhis ve kalibrasyon platformudur. Next.js 15 ve Web Audio API üzerine inşa edilen bu çözüm, donanım doğrulama süreçlerini tek bir çatı altında toplar.
+
+---
+
+## Technical Overview
+
+Lumina Pro, sadece bir test aracı değil, aynı zamanda donanım sınırlarını zorlayan bir mühendislik çalışmasıdır.
+
+### Key Modules
+
+* **Advanced Display Diagnostics**: 10-bit renk derinliği testi, geometri ızgarası ve ölü piksel döngüsü.
+* **Audio Lab Engine**: Web Audio API kullanarak sağ/sol kanal izolasyonu ve 20Hz-20kHz frekans taraması (sweep).
+* **Motion Blur & Refresh Rate**: Monitörün gerçek Hz değerini doğrulayan ve ghosting/MPRT analizlerini yapan hareketli vektör motoru.
+* **Digitizer Multi-Touch Mapping**: Dokunmatik ekranların ölü bölgelerini tespit etmek için geliştirilmiş, eşzamanlı çoklu dokunuş desteği sunan Canvas tabanlı haritalama.
+* **Liquid Crystal Stimulus (Repair)**: Sıkışmış pikselleri uyandırmak için saniyede 60 kare hızında bitwise operasyonlarla üretilen yüksek hızlı beyaz gürültü (noise).
+
+---
+
+## Core Technologies
+
+| Technology | Implementation |
+| :--- | :--- |
+| **Framework** | Next.js 15 (App Router) with Turbopack |
+| **Language** | TypeScript (Strict Mode) |
+| **Styling** | Tailwind CSS with Glassmorphism patterns |
+| **Animations** | Framer Motion (Hardware Accelerated) |
+| **Audio** | Low-latency Web Audio API |
+| **Performance** | Bitwise Canvas Rendering & RequestAnimationFrame |
+| **Progressive Web App** | Workbox with aggressive caching for offline use |
+
+---
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+* Node.js 18.0 or higher
+* npm, yarn, pnpm or bun
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Local Development
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1.  **Clone the repository:**
+    git clone https://github.com/root1905/lumina.git
+    cd lumina
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+2.  **Install dependencies:**
+    npm install
 
-## Learn More
+3.  **Run the development server:**
+    npm run dev
 
-To learn more about Next.js, take a look at the following resources:
+4.  **Access the suite:**
+    Navigate to http://localhost:3000.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Deployment and Optimization
 
-## Deploy on Vercel
+### Vercel Integration
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Lumina Pro, Vercel Edge Network üzerinde optimize edilmiştir. Projenin dağıtımı için:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1.  GitHub deponuzu Vercel Dashboard'a bağlayın.
+2.  NEXT_PUBLIC_GA_ID gibi ortam değişkenlerini yapılandırın.
+3.  Deploy butonuna tıklayarak CI/CD hattını aktif edin.
+
+### SEO & Performance
+
+Proje, Google botları için tam uyumlu sitemap.xml ve robots.txt dosyalarını dinamik olarak oluşturur. Core Web Vitals metriklerinde 100/100 performans hedefiyle optimize edilmiştir.
+
+---
+
+## Authorship and Credits
+
+* **Lead Developer**: root1905 
+* **Organization**: Lemina Pro OS
+* **Inspiration**: Professional Eizo and DisplayMate testing suites.
+
+---
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+---
+
+**Lumina is a product of Lemina Pro OS.**
