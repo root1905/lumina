@@ -22,7 +22,7 @@ Lumina Pro, sadece bir test aracı değil, aynı zamanda donanım sınırların�
 
 | Technology | Implementation |
 | :--- | :--- |
-| **Framework** | Next.js 15 (App Router) with Turbopack |
+| **Framework** | Next.js 16.1.6 (App Router) with Turbopack |
 | **Language** | TypeScript (Strict Mode) |
 | **Styling** | Tailwind CSS with Glassmorphism patterns |
 | **Animations** | Framer Motion (Hardware Accelerated) |
