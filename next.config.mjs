@@ -1,12 +1,12 @@
 import withPWAInit from "@ducanh2912/next-pwa";
 
 const withPWA = withPWAInit({
-  dest: "public", // Service worker dosyalarını buraya çıkarır
-  cacheOnFrontEndNav: true, // Sayfalar arası geçişte önbellek kullanır (Hız!)
+  dest: "public",
+  cacheOnFrontEndNav: true,
   aggressiveFrontEndNavCaching: true,
-  reloadOnOnline: true, // İnternet gelince sayfayı yeniler
-  swcMinify: true, // Kodu sıkıştırır
-  disable: process.env.NODE_ENV === "development", // Geliştirme modunda PWA kapalı olsun (Hata ayıklama kolaylığı için)
+  reloadOnOnline: true,
+  swcMinify: true,
+  disable: process.env.NODE_ENV === "development",
   workboxOptions: {
     disableDevLogs: true,
   },
@@ -14,7 +14,10 @@ const withPWA = withPWAInit({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Diğer Next.js ayarları buraya gelebilir
+  // 🔴 KRİTİK DÜZELTME BURADA:
+  // Next.js 16'nın PWA eklentisi yüzünden hata vermesini engelliyoruz.
+  // Bu boş obje, "Webpack kullanmama izin ver" demektir.
+  turbopack: {}, 
 };
 
 export default withPWA(nextConfig);
