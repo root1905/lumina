@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+/* --- Lumina Pro Theme Settings --- */
+
+:root {
+  /* Renk Paleti Tanımları */
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 0, 0, 0;
+  --background-end-rgb: 0, 0, 0;
+}
+
+/* --- Global Reset & Base Styles --- */
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: black; /* OLED dostu tam siyah */
+  overflow: hidden;  /* Scroll bar çıkmasını engeller (Pro hissiyatı) */
+  
+  /* Font Pürüzsüzleştirme (Antialiasing) */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* --- Utility Class Eklentileri (Gerekirse) --- */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
