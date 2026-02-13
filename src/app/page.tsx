@@ -4,24 +4,33 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Maximize, Minimize, Play, Pause, Info, 
-  Palette, MonitorCheck, Sun, Moon, MonitorX
+  Palette, Grid3X3, Activity, Layers, Monitor, Type 
 } from "lucide-react";
 import { clsx } from "clsx";
 
-// Profesyonel Renk Paleti (Kalibrasyon Standartları)
+// --- VERİ TİPLERİ VE SABİTLER ---
+
 const COLORS = [
   { id: "white", value: "#FFFFFF", label: "Pure White" },
   { id: "black", value: "#000000", label: "Deep Black" },
   { id: "red", value: "#FF0000", label: "Red" },
   { id: "green", value: "#00FF00", label: "Green" },
   { id: "blue", value: "#0000FF", label: "Blue" },
-  { id: "cyan", value: "#00FFFF", label: "Cyan" },
-  { id: "magenta", value: "#FF00FF", label: "Magenta" },
-  { id: "yellow", value: "#FFFF00", label: "Yellow" },
 ];
 
+const PATTERNS = [
+  { id: "color", label: "Solid Colors", icon: Palette },
+  { id: "grid", label: "Geometry Grid", icon: Grid3X3 },
+  { id: "gradient", label: "Color Gradient", icon: Layers },
+  { id: "text", label: "Readability", icon: Type },
+];
+
+// --- ANA UYGULAMA ---
+
 export default function Page() {
-  const [currentIndex, setCurrentIndex] = useState(0);
+  // State Yönetimi
+  const [mode, setMode] = useState<"color" | "grid" | "gradient" | "text">("color");
+  const [colorIndex, setColorIndex] = useState(0);
   const [customColor, setCustomColor] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showUI, setShowUI] = useState(true);
@@ -31,87 +40,48 @@ export default function Page() {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
 
-  // Aktif rengi belirle
-  const activeColor = customColor || COLORS[currentIndex].value;
+  // Aktif Renk
+  const activeColor = customColor || COLORS[colorIndex].value;
 
-  // --- WAKE LOCK API (Ekranın Kapanmasını Engeller) ---
+  // --- WAKE LOCK & UI GİZLEME (Aynı kalıyor) ---
   useEffect(() => {
     const requestWakeLock = async () => {
       try {
-        if ('wakeLock' in navigator) {
-          wakeLockRef.current = await navigator.wakeLock.request('screen');
-        }
-      } catch (err) {
-        console.error(`${err} - Wake Lock not supported`);
-      }
+        if ('wakeLock' in navigator) wakeLockRef.current = await navigator.wakeLock.request('screen');
+      } catch (err) { console.log("Wake Lock error", err); }
     };
     
-    // Sayfa odaklandığında tekrar kilitle
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') requestWakeLock();
+    const handleActivity = () => {
+      setShowUI(true);
+      if (timerRef.current) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => !showInfo && setShowUI(false), 3000);
     };
 
     requestWakeLock();
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener("mousemove", handleActivity);
+    window.addEventListener("click", handleActivity);
+    window.addEventListener("keydown", handleActivity);
+    
     return () => {
-      if (wakeLockRef.current) wakeLockRef.current.release();
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener("mousemove", handleActivity);
+      window.removeEventListener("click", handleActivity);
+      window.removeEventListener("keydown", handleActivity);
     };
-  }, []);
-
-  // --- UI OTOMATİK GİZLEME ---
-  const resetUITimer = useCallback(() => {
-    setShowUI(true);
-    if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => {
-      // Eğer bilgi ekranı açıksa UI gizlenmesin
-      if (!showInfo) setShowUI(false);
-    }, 3000);
   }, [showInfo]);
 
-  useEffect(() => {
-    window.addEventListener("mousemove", resetUITimer);
-    window.addEventListener("click", resetUITimer);
-    window.addEventListener("keydown", resetUITimer);
-    return () => {
-      window.removeEventListener("mousemove", resetUITimer);
-      window.removeEventListener("click", resetUITimer);
-      window.removeEventListener("keydown", resetUITimer);
-    };
-  }, [resetUITimer]);
-
-  // --- RENK DÖNGÜSÜ (Pixel Test) ---
+  // --- RENK DÖNGÜSÜ (Sadece Color modunda) ---
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    if (isPlaying) {
+    if (isPlaying && mode === "color") {
       interval = setInterval(() => {
-        setCustomColor(null); // Custom rengi iptal et
-        setCurrentIndex((prev) => (prev + 1) % COLORS.length);
+        setCustomColor(null);
+        setColorIndex((prev) => (prev + 1) % COLORS.length);
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [isPlaying]);
+  }, [isPlaying, mode]);
 
-  // --- KLAVYE KISAYOLLARI ---
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "ArrowRight") {
-        setCustomColor(null);
-        setCurrentIndex((prev) => (prev + 1) % COLORS.length);
-      }
-      if (e.key === "ArrowLeft") {
-        setCustomColor(null);
-        setCurrentIndex((prev) => (prev - 1 + COLORS.length) % COLORS.length);
-      }
-      if (e.key === " ") setIsPlaying((prev) => !prev);
-      if (e.key === "f") toggleFullscreen();
-      if (e.key === "Escape") setShowInfo(false);
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
-
-  // --- TAM EKRAN ---
+  // --- FULLSCREEN ---
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen();
@@ -124,156 +94,164 @@ export default function Page() {
 
   return (
     <main
-      className="relative w-full h-screen transition-colors duration-500 ease-in-out cursor-none"
-      style={{ backgroundColor: activeColor, cursor: showUI ? "default" : "none" }}
-      onClick={() => {
-        // Ekrana tıklayınca döngüyü durdur/başlat (UI dışındaysa)
-        if (!showUI && !showInfo) setIsPlaying(!isPlaying);
+      className="relative w-full h-screen overflow-hidden cursor-none"
+      style={{ 
+        backgroundColor: mode === "color" ? activeColor : "#000",
+        cursor: showUI ? "default" : "none" 
       }}
     >
-      {/* --- INFO MODAL (SEO & Kullanım Kılavuzu) --- */}
-      <AnimatePresence>
-        {showInfo && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-            onClick={(e) => {
-              if (e.target === e.currentTarget) setShowInfo(false);
-            }}
-          >
-            <div className="bg-[#111] border border-gray-800 p-8 rounded-3xl max-w-lg w-full text-gray-300 shadow-2xl">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-                  <MonitorCheck className="text-blue-500" /> Lumina Pro
-                </h2>
-                <button onClick={() => setShowInfo(false)} className="hover:text-white">✕</button>
-              </div>
-              
-              <div className="space-y-4 text-sm leading-relaxed">
-                <p>
-                  <strong className="text-white">Lumina Pro</strong>, ekran kalibrasyonu, ölü piksel tespiti ve ortam ışığı sağlamak için tasarlanmış profesyonel bir web aracıdır.
-                </p>
-                <ul className="list-disc pl-5 space-y-2 text-gray-400">
-                  <li><strong className="text-gray-200">Ölü Piksel Testi:</strong> Play butonuna basarak renk döngüsünü başlatın ve ekranda yanmayan nokta arayın.</li>
-                  <li><strong className="text-gray-200">Ekran Yanması (Burn-in) Giderme:</strong> Uzun süreli renk değişimi LCD/OLED panelinizi tazelemeye yardımcı olabilir.</li>
-                  <li><strong className="text-gray-200">Ortam Işığı:</strong> Odanızı aydınlatmak veya fotoğraf çekimlerinde soft light (yumuşak ışık) kaynağı olarak kullanın.</li>
-                </ul>
-                <div className="pt-4 border-t border-gray-800 flex justify-between text-xs text-gray-500">
-                  <span>v1.0.0 Stable</span>
-                  <span>Developed by Melike Med OS</span>
-                </div>
-              </div>
-            </div>
-          </motion.div>
+      {/* --- DESEN RENDER ALANI --- */}
+      <div className="absolute inset-0 w-full h-full flex items-center justify-center">
+        
+        {/* MOD 1: GRID TESTİ */}
+        {mode === "grid" && (
+          <div className="w-full h-full relative bg-black">
+             {/* Dikey Çizgiler */}
+             <div className="absolute inset-0 flex justify-between">
+                {[...Array(20)].map((_, i) => (
+                  <div key={`v-${i}`} className="w-px h-full bg-white/30" />
+                ))}
+             </div>
+             {/* Yatay Çizgiler */}
+             <div className="absolute inset-0 flex flex-col justify-between">
+                {[...Array(20)].map((_, i) => (
+                  <div key={`h-${i}`} className="w-full h-px bg-white/30" />
+                ))}
+             </div>
+             {/* Merkez Daireler */}
+             <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-1/2 h-1/2 border border-white rounded-full opacity-50"></div>
+                <div className="w-1/4 h-1/4 border border-red-500 rounded-full opacity-50"></div>
+             </div>
+          </div>
         )}
-      </AnimatePresence>
 
-      {/* --- DOCK / KONTROL PANELİ --- */}
+        {/* MOD 2: GRADIENT TESTİ */}
+        {mode === "gradient" && (
+          <div className="w-full h-full flex flex-col">
+            <div className="flex-1 bg-gradient-to-r from-black via-gray-500 to-white"></div>
+            <div className="flex-1 bg-gradient-to-r from-black via-red-500 to-white"></div>
+            <div className="flex-1 bg-gradient-to-r from-black via-green-500 to-white"></div>
+            <div className="flex-1 bg-gradient-to-r from-black via-blue-500 to-white"></div>
+          </div>
+        )}
+
+        {/* MOD 3: TEXT READABILITY */}
+        {mode === "text" && (
+          <div className="w-full h-full bg-white text-black flex flex-col items-center justify-center p-10 space-y-8 select-none">
+            <h1 className="text-6xl font-black tracking-tighter">Sharpness Test</h1>
+            <p className="text-xs">The quick brown fox jumps over the lazy dog (12px)</p>
+            <p className="text-sm">The quick brown fox jumps over the lazy dog (14px)</p>
+            <p className="text-base">The quick brown fox jumps over the lazy dog (16px)</p>
+            <p className="text-xl">The quick brown fox jumps over the lazy dog (20px)</p>
+            <div className="flex gap-4 mt-8">
+               <div className="w-32 h-32 bg-black text-white flex items-center justify-center text-xs">Black BG</div>
+               <div className="w-32 h-32 bg-gray-200 text-gray-500 flex items-center justify-center text-xs">Low Contrast</div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* --- YENİ DOCK / KONTROL PANELİ --- */}
       <AnimatePresence>
         {showUI && (
           <motion.div
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 100, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40"
+            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50"
           >
-            <div className="flex items-center gap-3 p-3 bg-[#0a0a0a]/80 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl ring-1 ring-black/5">
+            <div className="flex flex-col items-center gap-4">
               
-              {/* Renk Paleti */}
-              <div className="flex items-center gap-2 px-2 border-r border-white/10">
-                {COLORS.slice(0, 5).map((color) => (
+              {/* Üst Bar: Mod Seçici */}
+              <div className="flex bg-black/80 backdrop-blur-md border border-white/10 rounded-full p-1 gap-1">
+                {PATTERNS.map((p) => (
                   <button
-                    key={color.id}
+                    key={p.id}
                     onClick={() => {
+                      setMode(p.id as any);
                       setIsPlaying(false);
-                      setCustomColor(null);
-                      setCurrentIndex(COLORS.indexOf(color));
                     }}
                     className={clsx(
-                      "w-8 h-8 rounded-full border border-white/10 transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500",
-                      activeColor === color.value && !isPlaying && "ring-2 ring-white scale-110"
+                      "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all",
+                      mode === p.id 
+                        ? "bg-white text-black shadow-lg" 
+                        : "text-gray-400 hover:text-white hover:bg-white/10"
                     )}
-                    style={{ backgroundColor: color.value }}
-                    title={color.label}
-                  />
+                  >
+                    <p.icon size={16} />
+                    <span className="hidden sm:inline">{p.label}</span>
+                  </button>
                 ))}
-                
-                {/* Özel Renk Seçici */}
-                <div className="relative group ml-1">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 via-red-500 to-yellow-500 border border-white/10 flex items-center justify-center cursor-pointer transition-transform group-hover:scale-110">
-                    <Palette size={14} className="text-white mix-blend-difference" />
-                  </div>
-                  <input
-                    type="color"
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    onChange={(e) => {
-                      setIsPlaying(false);
-                      setCustomColor(e.target.value);
-                    }}
-                  />
-                </div>
               </div>
 
-              {/* Kontrol Butonları */}
-              <div className="flex items-center gap-2 px-2">
-                <DockButton 
-                  onClick={() => setIsPlaying(!isPlaying)} 
-                  active={isPlaying}
-                  label={isPlaying ? "Pause Loop" : "Start Test"}
-                >
-                  {isPlaying ? <Pause size={20} /> : <Play size={20} />}
-                </DockButton>
+              {/* Alt Bar: Renkler ve Kontroller (Sadece Color Modunda) */}
+              {mode === "color" && (
+                <div className="flex items-center gap-3 p-3 bg-black/80 backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl">
+                  {/* Renk Topları */}
+                  <div className="flex gap-2 pr-3 border-r border-white/10">
+                    {COLORS.map((c, i) => (
+                      <button
+                        key={c.id}
+                        onClick={() => {
+                          setIsPlaying(false);
+                          setCustomColor(null);
+                          setColorIndex(i);
+                        }}
+                        className={clsx(
+                          "w-6 h-6 rounded-full border border-white/20 transition-transform",
+                          activeColor === c.value && !isPlaying && "scale-125 border-white ring-2 ring-white/20"
+                        )}
+                        style={{ backgroundColor: c.value }}
+                      />
+                    ))}
+                    {/* Custom Color Input */}
+                    <label className="w-6 h-6 rounded-full bg-gradient-to-tr from-pink-500 to-yellow-500 cursor-pointer border border-white/20 relative flex items-center justify-center">
+                        <Palette size={12} className="text-white mix-blend-difference"/>
+                        <input type="color" className="opacity-0 absolute inset-0 w-full h-full cursor-pointer" onChange={(e) => setCustomColor(e.target.value)} />
+                    </label>
+                  </div>
 
-                <DockButton 
-                  onClick={toggleFullscreen} 
-                  active={isFullscreen}
-                  label="Fullscreen"
-                >
-                  {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
-                </DockButton>
+                  {/* Play/Pause */}
+                  <button onClick={() => setIsPlaying(!isPlaying)} className="p-2 text-white hover:bg-white/10 rounded-lg">
+                    {isPlaying ? <Pause size={20} /> : <Play size={20} />}
+                  </button>
+                </div>
+              )}
 
-                <DockButton 
-                  onClick={() => setShowInfo(true)} 
-                  label="Info & Guide"
-                >
-                  <Info size={20} />
-                </DockButton>
+              {/* Ortak Kontroller (Fullscreen & Info) */}
+              <div className="absolute right-[-60px] top-1/2 -translate-y-1/2 flex flex-col gap-2">
+                 <button onClick={toggleFullscreen} className="p-3 bg-black/80 backdrop-blur border border-white/10 rounded-full text-white hover:bg-white hover:text-black transition-colors">
+                    {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
+                 </button>
+                 <button onClick={() => setShowInfo(!showInfo)} className="p-3 bg-black/80 backdrop-blur border border-white/10 rounded-full text-white hover:bg-white hover:text-black transition-colors">
+                    <Info size={18} />
+                 </button>
               </div>
 
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-    </main>
-  );
-}
-
-// Dock İçin Özel Buton Bileşeni
-function DockButton({ 
-  children, onClick, active, label 
-}: { 
-  children: React.ReactNode, onClick: () => void, active?: boolean, label: string 
-}) {
-  return (
-    <div className="relative group">
-      <button
-        onClick={onClick}
-        className={clsx(
-          "p-3 rounded-xl transition-all duration-200",
-          active 
-            ? "bg-white text-black shadow-lg shadow-white/10" 
-            : "text-gray-400 hover:text-white hover:bg-white/10"
+      
+      {/* Info Modal (Kısaltıldı) */}
+      <AnimatePresence>
+        {showInfo && (
+           <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[60] bg-black/80 flex items-center justify-center p-4" onClick={() => setShowInfo(false)}>
+              <div className="bg-[#111] p-6 rounded-2xl max-w-md text-gray-300 border border-white/10">
+                 <h2 className="text-xl font-bold text-white mb-2">Lumina Pro Guide</h2>
+                 <p className="mb-4">Select a mode from the top bar:</p>
+                 <ul className="space-y-2 text-sm list-disc pl-4">
+                    <li><strong className="text-white">Color:</strong> Dead pixel check.</li>
+                    <li><strong className="text-white">Grid:</strong> Screen geometry & alignment.</li>
+                    <li><strong className="text-white">Gradient:</strong> Color banding test.</li>
+                    <li><strong className="text-white">Text:</strong> Sharpness & readability.</li>
+                 </ul>
+                 <p className="mt-4 text-xs text-gray-500">Tap anywhere to close.</p>
+              </div>
+           </motion.div>
         )}
-      >
-        {children}
-      </button>
-      {/* Tooltip */}
-      <span className="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-black text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-gray-800">
-        {label}
-      </span>
-    </div>
+      </AnimatePresence>
+    </main>
   );
 }
