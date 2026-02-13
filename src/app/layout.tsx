@@ -13,12 +13,25 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Lumina | Professional Screen & Dead Pixel Test",
-  description: "The ultimate tool for screen testing, dead pixel detection, and ambient lighting. Features RGB color cycling, pure black mode, and wake lock support.",
-  keywords: ["screen test", "dead pixel fix", "white screen", "black screen", "monitor calibration", "lcd test"],
-  authors: [{ name: "Lumina Pro OS" }], // Senin imzan
+  title: "Lumina Pro | Screen & Audio Test Lab",
+  description: "Professional screen testing, dead pixel repair, and audio frequency analysis tool.",
+  manifest: "/manifest.json",
+  themeColor: "#000000",
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false, // Uygulama hissi için zoom kapalı
+  },
   icons: {
-    icon: "/favicon.ico", // public klasörüne bir favicon koymayı unutma
+    icon: "/icons/icon-192.png", // Tarayıcı sekmesi için
+    shortcut: "/icons/icon-192.png",
+    apple: "/icons/icon-512.png", // iPhone ana ekranı için
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Lumina Pro",
   },
   openGraph: {
     title: "Lumina Pro Display Tool",

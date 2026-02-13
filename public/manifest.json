@@ -1,24 +1,24 @@
 {
   "name": "Lumina Pro Display Tool",
   "short_name": "Lumina",
-  "description": "Professional screen testing and ambient light tool.",
+  "description": "Professional screen testing, dead pixel fix, and audio analysis tool.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",
-  "orientation": "any",
+  "orientation": "portrait",
   "icons": [
     {
-      "src": "/icons/icon-192x192.png",
+      "src": "/icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "any maskable"
     },
     {
-      "src": "/icons/icon-512x512.png",
+      "src": "/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "any maskable"
     }
   ]
 }
